@@ -33,7 +33,7 @@ jobs:
 
      - name: Tagging Docker image
        run: |
-        docker tag actioncalculator green123ree/calculator_app
+        docker tag actioncalculator green123ree/actioncalculator
 
      - name: login to docker hub
        uses: docker/login-action@v3
@@ -43,5 +43,5 @@ jobs:
      
      - name: Push docker image to docker hub
        run: |
-        docker push green123ree/calculator_app        
+        docker push green123ree/actioncalculator        
              
