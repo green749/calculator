@@ -29,5 +29,5 @@ jobs:
 
      - name: Build Docker image
        run: |
-         docker build -t calculator:latest     
+         docker build -t Actioncalculator     
              
