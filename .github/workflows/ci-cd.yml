@@ -13,5 +13,21 @@ jobs:
      - name: Checkout code
        uses: actions/checkout@v5
 
-     - name: Test pipeline
-       run: echo "Github Actions is working!"   
+     - name: Set up Node.js
+       uses: actions/setup-node@v5
+       with:
+          node-version: '22'
+
+     - name: Start application 
+       run: |
+         node server.js &
+         sleep 3
+
+     - name: Test application
+       run: |
+        curl http://localhost:5000   
+
+     - name: Build Docker image
+       run: |
+         docker build -t calculator:latest     
+             
