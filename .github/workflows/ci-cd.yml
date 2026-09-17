@@ -29,5 +29,13 @@ jobs:
 
      - name: Build Docker image
        run: |
-         docker build -t actioncalculator .     
+         docker build -t actioncalculator .   
+
+     - name: Tagging Docker image
+       run: |
+        docker tag actioncalculator green123ree/calculator_app
+
+     - name: Push docker image to docker hub
+       run: |
+        docker push green123ree/calculator_app        
              
