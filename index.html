@@ -3,52 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Calculator</title>
+    <meta name="theme-color" content="#111827">
+    <title>Calc — Simple, thoughtful math</title>
+    <style>
+        :root { color-scheme: dark; --surface: rgba(17,24,39,.84); --surface-light: rgba(255,255,255,.08); --text: #f8fafc; --muted: #94a3b8; --accent: #8b5cf6; --accent-bright: #a78bfa; --danger: #fb7185; }
+        * { box-sizing: border-box; }
+        body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 28px 18px; color: var(--text); font-family: Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background: radial-gradient(circle at 12% 12%,#5b21b6 0,transparent 31%),radial-gradient(circle at 87% 88%,#0e7490 0,transparent 34%),#0b1120; }
+        .calculator { width: min(100%,390px); padding: 22px; border: 1px solid rgba(255,255,255,.12); border-radius: 30px; background: var(--surface); box-shadow: 0 24px 70px rgba(0,0,0,.45); backdrop-filter: blur(18px); }
+        .brand { display: flex; align-items: center; gap: 9px; margin: 2px 2px 22px; color: var(--muted); font-size: .76rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+        .brand-mark { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; color: white; font-size: 1rem; background: linear-gradient(135deg,var(--accent-bright),#6366f1); }
+        .display { min-height: 138px; padding: 18px; margin-bottom: 18px; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; overflow: hidden; border-radius: 21px; background: rgba(2,6,23,.5); }
+        .expression { min-height: 24px; color: var(--muted); font-size: 1rem; letter-spacing: .03em; }
+        .result { width: 100%; margin-top: 8px; overflow: hidden; color: var(--text); font-size: clamp(2.45rem,11vw,3.8rem); font-weight: 650; letter-spacing: -.055em; line-height: 1.05; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+        .keypad { display: grid; grid-template-columns: repeat(4,1fr); gap: 11px; }
+        button { min-height: 61px; cursor: pointer; border: 0; border-radius: 17px; color: var(--text); font: inherit; font-size: 1.18rem; font-weight: 650; background: var(--surface-light); transition: transform .15s ease,background .15s ease,box-shadow .15s ease; }
+        button:hover { background: rgba(255,255,255,.15); } button:active { transform: scale(.94); } button:focus-visible { outline: 3px solid var(--accent-bright); outline-offset: 2px; }
+        .utility { color: var(--accent-bright); background: rgba(139,92,246,.13); } .utility.clear { color: var(--danger); } .operator { color: #ddd6fe; background: rgba(139,92,246,.23); } .equals { color: white; background: linear-gradient(135deg,#8b5cf6,#6366f1); box-shadow: 0 8px 20px rgba(99,102,241,.28); } .equals:hover { background: linear-gradient(135deg,#a78bfa,#818cf8); } .zero { grid-column: span 2; }
+    </style>
 </head>
 <body>
-
-    <h1>Simple Calculator</h1>
-
-    <input type="number" id="num1" placeholder="Enter first number">
-    <label for="operator">Operator:</label>
-    <select id="operator">
-        <option value="+">+</option>
-        <option value="-">-</option>
-        <option value="*">*</option>
-        <option value="/">/</option>
-    </select>
-
-    <input type="number" id="num2" placeholder="Enter second number">
-
-    <button onclick="calculate()">Calculate</button>
-
-    <h2 id="result"></h2>
-
+    <main class="calculator" aria-label="Calculator">
+        <div class="brand"><span class="brand-mark">±</span> Pocket calculator</div>
+        <section class="display" aria-live="polite" aria-atomic="true">
+            <div class="expression" id="expression">Ready to calculate</div>
+            <output class="result" id="result">0</output>
+        </section>
+        <div class="keypad" id="keypad">
+            <button class="utility clear" type="button" data-action="clear" aria-label="Clear">AC</button>
+            <button class="utility" type="button" data-action="sign" aria-label="Toggle sign">±</button>
+            <button class="utility" type="button" data-action="percent" aria-label="Percentage">%</button>
+            <button class="operator" type="button" data-operator="/" aria-label="Divide">÷</button>
+            <button type="button" data-value="7">7</button><button type="button" data-value="8">8</button><button type="button" data-value="9">9</button><button class="operator" type="button" data-operator="*" aria-label="Multiply">×</button>
+            <button type="button" data-value="4">4</button><button type="button" data-value="5">5</button><button type="button" data-value="6">6</button><button class="operator" type="button" data-operator="-" aria-label="Subtract">−</button>
+            <button type="button" data-value="1">1</button><button type="button" data-value="2">2</button><button type="button" data-value="3">3</button><button class="operator" type="button" data-operator="+" aria-label="Add">+</button>
+            <button class="zero" type="button" data-value="0">0</button><button type="button" data-value=".">.</button><button class="equals" type="button" data-action="equals" aria-label="Calculate">=</button>
+        </div>
+    </main>
     <script>
+        const result = document.getElementById("result");
+        const expression = document.getElementById("expression");
+        const keypad = document.getElementById("keypad");
+        let current = "0", firstNumber = null, operator = null, freshResult = false;
+        const symbols = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+        const render = () => result.textContent = current;
+        const formatNumber = value => Number.isFinite(value) ? String(Number(value.toPrecision(12))) : "Error";
+        function input(value) { if (freshResult) { current = "0"; freshResult = false; } if (value === "." && current.includes(".")) return; current = current === "0" && value !== "." ? value : current + value; render(); }
+        function chooseOperator(nextOperator) { if (operator && !freshResult) calculate(); firstNumber = Number(current); operator = nextOperator; expression.textContent = `${formatNumber(firstNumber)} ${symbols[operator]}`; freshResult = true; }
         async function calculate() {
-            const num1 = document.getElementById("num1").value;
-            const num2 = document.getElementById("num2").value;
-            const operator = document.getElementById("operator").value;
-
-           const response = await fetch("/calculate", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        num1: Number(num1),
-        num2: Number(num2),
-        operator: operator
-    })
-});
-
-            const data = await response.json();
-
-            document.getElementById("result").innerText =
-                "Result: " + data.result;
+            if (!operator || firstNumber === null) return;
+            const secondNumber = Number(current); expression.textContent = `${formatNumber(firstNumber)} ${symbols[operator]} ${formatNumber(secondNumber)} =`;
+            try { const response = await fetch("/calculate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ num1: firstNumber, num2: secondNumber, operator }) }); if (!response.ok) throw new Error(); const data = await response.json(); current = typeof data.result === "number" ? formatNumber(data.result) : String(data.result); }
+            catch { current = "Unable to calculate"; expression.textContent = "Something went wrong"; }
+            operator = null; firstNumber = null; freshResult = true; render();
         }
+        function clear() { current = "0"; firstNumber = null; operator = null; freshResult = false; expression.textContent = "Ready to calculate"; render(); }
+        function action(name) { if (name === "clear") clear(); if (name === "sign" && current !== "0") { current = String(-Number(current)); render(); } if (name === "percent") { current = formatNumber(Number(current) / 100); render(); } if (name === "equals") calculate(); }
+        keypad.addEventListener("click", event => { const button = event.target.closest("button"); if (!button) return; if (button.dataset.value !== undefined) input(button.dataset.value); if (button.dataset.operator) chooseOperator(button.dataset.operator); if (button.dataset.action) action(button.dataset.action); });
+        document.addEventListener("keydown", event => { if (/^[0-9.]$/.test(event.key)) input(event.key); else if (["+","-","*","/"].includes(event.key)) chooseOperator(event.key); else if (event.key === "Enter" || event.key === "=") { event.preventDefault(); calculate(); } else if (event.key === "Escape") clear(); else if (event.key === "Backspace") { current = current.length > 1 ? current.slice(0,-1) : "0"; render(); } });
     </script>
-
 </body>
 </html>
-
