@@ -44,4 +44,7 @@ jobs:
      - name: Push docker image to docker hub
        run: |
         docker push green123ree/actioncalculator        
-             
+
+     - name: deploy to the render
+       run: |
+        curl -X POST "${{secrets.RENDER_HOOK}}"  
